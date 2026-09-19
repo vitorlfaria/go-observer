@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"sync"
 	"time"
@@ -37,10 +39,16 @@ func main() {
 	client := client.NewClient()
 	var wg sync.WaitGroup
 	resultsChan := make(chan types.Result, len(configFile.URLs))
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
 	for _, url := range configFile.URLs {
 		wg.Go(func() {
 			start := time.Now()
-			callResult, err := client.Get(url)
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+			if err != nil {
+				log.Printf("Error creating request to %s: %s", url, err.Error())
+			}
+			callResult, err := client.Do(req)
 			duration := time.Since(start)
 
 			result := types.Result{
