@@ -43,20 +43,25 @@ func main() {
 	defer cancel()
 	for _, url := range configFile.URLs {
 		wg.Go(func() {
+			result := types.Result{
+				URL:      url,
+				Status:   "",
+				Duration: 0,
+				Error:    nil,
+			}
+
 			start := time.Now()
 			req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 			if err != nil {
 				log.Printf("Error creating request to %s: %s", url, err.Error())
+				result.Error = err
+				resultsChan <- result
+				return
 			}
+
 			callResult, err := client.Do(req)
 			duration := time.Since(start)
-
-			result := types.Result{
-				URL:      url,
-				Status:   "",
-				Duration: duration,
-				Error:    nil,
-			}
+			result.Duration = duration
 
 			if err != nil {
 				log.Printf("Error on request to %s: %s", url, err.Error())
