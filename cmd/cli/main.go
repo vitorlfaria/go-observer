@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -12,6 +11,7 @@ import (
 	"time"
 
 	"github.com/vitorlfaria/go-observer/internal/client"
+	"github.com/vitorlfaria/go-observer/internal/config"
 	"github.com/vitorlfaria/go-observer/internal/types"
 )
 
@@ -24,15 +24,15 @@ func main() {
 		log.Fatal("Error: config is required")
 	}
 
-	var configFile types.Config
-
 	configFileBytes, err := os.ReadFile(*configArg)
 
 	if err != nil {
 		log.Fatalf("Error reading config file: %s\n", err.Error())
 	}
 
-	if err := json.Unmarshal(configFileBytes, &configFile); err != nil {
+	configFile, err := config.Parse(configFileBytes)
+
+	if err != nil {
 		log.Fatalf("Error parsing JSON: %s\n", err.Error())
 	}
 
